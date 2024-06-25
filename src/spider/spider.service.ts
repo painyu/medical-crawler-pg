@@ -1,4 +1,4 @@
-import { Injectable, ParseIntPipe, Query } from '@nestjs/common';
+import { Injectable, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Spider } from './entities/spider.entity';
 import { Repository } from 'typeorm';
@@ -12,9 +12,9 @@ export class SpiderService {
 
   constructor(
     @InjectRepository(Spider)
-    private readonly spiderRepository: Repository<Spider>
-  ) { }
+    private readonly spiderRepository: Repository<Spider>,
 
+  ) { }
 
   async findSpiderListPage(page: number, limit: number, keyword: string): Promise<ResultData> {
     if (keyword === undefined || keyword === null || keyword === '') {
@@ -167,7 +167,7 @@ export class SpiderService {
           .where("contact_person = ''")
           .skip(pageNum)
           .take(pageSize)
-          .orderBy({ "create_time": "DESC" })
+          .orderBy({ "create_time": "ASC" })
           .getMany();
         if (spiderList != undefined && spiderList.length != 0) {
           let myMap = new Map();
