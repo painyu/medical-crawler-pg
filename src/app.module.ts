@@ -20,7 +20,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
       synchronize: false,
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,
-      logger: "file",
+      //logger: "file",
       ssl: true,
       extra: {
         sslmode: 'require'
