@@ -4,7 +4,7 @@ import { Spider } from './entities/spider.entity';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { ResultData } from 'src/common/utils/result';
+import { ResultData } from '../common/utils/result';
 import { v4 as uuidv4 } from "uuid";
 
 @Injectable()

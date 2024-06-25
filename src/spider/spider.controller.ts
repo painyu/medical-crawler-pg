@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe 
 import { SpiderService } from './spider.service';
 import { CreateSpiderDto } from './dto/create-spider.dto';
 import { UpdateSpiderDto } from './dto/update-spider.dto';
-import { ResultData } from 'src/common/utils/result';
+import { ResultData } from '../common/utils/result';
 
 @Controller('spider')
 export class SpiderController {
