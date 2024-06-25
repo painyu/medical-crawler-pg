@@ -17,6 +17,9 @@ export class SpiderService {
 
 
   async findSpiderListPage(page: number, limit: number, keyword: string): Promise<ResultData> {
+    if (keyword === undefined) {
+      return ResultData.fail(500, "关键字不能为空");
+    }
     let spiderList = await this.spiderRepository.createQueryBuilder('spider_website')
       .where("keywords LIKE  :keyword", { keyword: `%${keyword}%` })
       .skip(page)
