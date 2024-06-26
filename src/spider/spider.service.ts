@@ -1,13 +1,15 @@
 import { Injectable, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Spider } from './entities/spider.entity';
-import { Repository } from 'typeorm';
+import { Any, Repository } from 'typeorm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { ResultData } from '../common/utils/result';
 import { v4 as uuidv4 } from "uuid";
 import { Redis } from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { QueryTypeDto } from './dto/query.type.dto';
+import { RedisConstant } from 'src/common/constants/redis.constant';
 
 @Injectable()
 export class SpiderService {
@@ -20,6 +22,23 @@ export class SpiderService {
 
   ) { }
 
+  async queryTypeAll(): Promise<ResultData> {
+    let result = []
+    let typeList = await this.redisClient.keys(RedisConstant.QUERY_TYPE + '*');
+    if (typeList != undefined && typeList.length != 0) {
+      for (let i = 0; i < typeList.length; i++) {
+        let dto = await this.redisClient.get(typeList[i]);
+        result.push(JSON.parse(dto))
+      }
+    }
+    return ResultData.ok(result);
+  }
+
+  async queryTypeInsert(type: QueryTypeDto): Promise<ResultData> {
+    await this.redisClient.set(RedisConstant.QUERY_TYPE + type.type, JSON.stringify({ "type": type.type, "name": type.name, "url": type.url }));
+    return ResultData.ok();
+  }
+
   async findSpiderListPage(page: number, limit: number, keyword: string): Promise<ResultData> {
     if (keyword === undefined || keyword === null || keyword === '') {
       return ResultData.fail(500, "关键字不能为空");
@@ -31,62 +50,71 @@ export class SpiderService {
     return ResultData.ok({ list: spiderList[0], total: spiderList[1] });
   }
 
-  async crawlCompanyInfoByAddress(): Promise<ResultData> {
-    //经销商
-    let url1 = "https://www.europages.cn/ep-api/v2/serp/companies?lang=zh-CN&search=%E7%BB%8F%E9%94%80%E5%95%86&page="
-    //代理商
-    let url2 = "https://www.europages.cn/ep-api/v2/serp/companies?lang=zh-CN&search=%E4%BB%A3%E7%90%86%E5%95%86&page=";
-    //服务商
-    let url3 = "https://www.europages.cn/ep-api/v2/serp/companies?lang=zh-CN&search=%E6%9C%8D%E5%8A%A1%E5%95%86&page=";
-    //企业
-    let url4 = "https://www.europages.cn/ep-api/v2/serp/companies?lang=zh-CN&search=%E4%BC%81%E4%B8%9A&page=";
+  async crawlCompanyInfoByAddress(queryType: number): Promise<ResultData> {
+    let redisType = await this.redisClient.get(RedisConstant.QUERY_TYPE + queryType);
+    if (redisType === undefined || redisType === null || redisType === '') {
+      return ResultData.fail(500, "不存在该类别");
+    }
+    let url = JSON.parse(redisType).url;
+    if (url === undefined || url === null || url === '') {
+      return ResultData.fail(500, "不存在爬虫地址");
+    }
     var flag = true;
     let pageNum = 1;
     while (flag) {
-      let res = await axios.get(url4 + pageNum + '&mode=default');
-      if (res.data != undefined && res.data.items != undefined && res.data.items.length != 0) {
-        const itemMap = res.data.items.reduce((map, item) => {
-          map.set(item.id, item);
-          return map;
-        }, new Map());
-        const spider = await this.spiderRepository.createQueryBuilder().where("company_id IN (:...companyIds)", { companyIds: Array.from(itemMap.keys()) }).getMany();
-        let spiderMap = new Map();
-        if (spider != null && spider.length != 0) {
-          spiderMap = spider.reduce((map, obj) => {
-            map.set(obj.companyId, obj);
+      let redisPage = await this.redisClient.get(RedisConstant.QUERY_TYPE_PAGE + queryType);
+      if (redisPage != undefined && redisPage != null && redisPage != '') {
+        pageNum = Number(redisPage);
+      }
+      try {
+        let res = await axios.get(url + pageNum + '&mode=default');
+        if (res.data != undefined && res.data.items != undefined && res.data.items.length != 0) {
+          const itemMap = res.data.items.reduce((map, item) => {
+            map.set(item.id, item);
             return map;
           }, new Map());
-        }
-        let result = [];
-        itemMap.forEach((value, key) => {
-          if (!spiderMap.get(key)) {
-            result.push(value);
+          const spider = await this.spiderRepository.createQueryBuilder().where("company_id IN (:...companyIds)", { companyIds: Array.from(itemMap.keys()) }).getMany();
+          let spiderMap = new Map();
+          if (spider != null && spider.length != 0) {
+            spiderMap = spider.reduce((map, obj) => {
+              map.set(obj.companyId, obj);
+              return map;
+            }, new Map());
           }
-        });
-        if (result.length != 0) {
-          console.log("====================执行插入 页码 : " + pageNum + "========================")
-          for (let j = 0; j < result.length; j++) {
-            this.spiderRepository.createQueryBuilder()
-              .insert()
-              .into(Spider)
-              .values({
-                companyId: result[j].id,
-                companyUrl: result[j].url,
-                companyName: result[j].name,
-                companyAddress: JSON.stringify(result[j].address)
-              }).execute()
-              .catch((err) => {
-                console.log(err)
-              });
+          let result = [];
+          itemMap.forEach((value, key) => {
+            if (!spiderMap.get(key)) {
+              result.push(value);
+            }
+          });
+          if (result.length != 0) {
+            for (let j = 0; j < result.length; j++) {
+              this.spiderRepository.createQueryBuilder()
+                .insert()
+                .into(Spider)
+                .values({
+                  companyId: result[j].id,
+                  companyUrl: result[j].url,
+                  companyName: result[j].name,
+                  companyAddress: JSON.stringify(result[j].address)
+                }).execute()
+                .catch((err) => {
+                  console.log(err)
+                });
+            }
+            console.log("====================插入 结束 页码 : " + pageNum + "========================  插入行数" + result.length)
           }
-          console.log("====================插入 结束 页码 : " + pageNum + "========================")
+          pageNum += 1;
+          await this.redisClient.set(RedisConstant.QUERY_TYPE_PAGE + queryType, pageNum);
+        } else {
+          flag = false
         }
-        pageNum += 1;
-      } else {
-        flag = false
+      } catch {
+        await this.redisClient.set(RedisConstant.QUERY_TYPE_PAGE + queryType, pageNum);
       }
     }
-    return ResultData.ok().data("成功");
+    console.log("====================== 方法 crawlCompanyInfoByAddress  执行完成==============================")
+    return ResultData.ok();
   }
 
   async getCompanyData(): Promise<ResultData> {

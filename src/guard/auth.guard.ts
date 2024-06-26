@@ -38,7 +38,6 @@ export class AuthGuard implements CanActivate {
         } catch (err) {
             throw new UnauthorizedException();
         }
-        console.log("token 验证通过啦   哈哈哈哈哈")
         return true;
     }
 
