@@ -7,17 +7,10 @@ export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
     ) { }
-    async verifyToken(accessToken: string) {
 
-    }
-
-    async validateUser(payload: { id: number }): Promise<string> {
-        return "";
-    }
-
-    async updateToken() {
+    async signIn(): Promise<ResultData> {
+        const payload = { username: "38a48120-0cb1-488b-948c-e6e2d7a6c785", sub: "766f37b0-2ddc-11ef-8e42-4b44796b1331" };
         const accessToken = `Bearer ${this.jwtService.sign(payload)}`
-        const refreshToken = this.jwtService.sign(payload, { expiresIn: this.configService.get('jwt.refreshExpiresIn') })
-        return { accessToken, refreshToken }
+        return ResultData.ok(accessToken);
     }
 }

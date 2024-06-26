@@ -1,9 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, UpdateDateColumn, CreateDateColumn, BeforeInsert } from "typeorm"
+import { Column, Entity, PrimaryGeneratedColumn, UpdateDateColumn, CreateDateColumn, BeforeInsert, PrimaryColumn } from "typeorm"
 
 @Entity({ name: 'spider_website' })
 export class Spider {
-    @PrimaryGeneratedColumn("uuid")
-    id: string
+    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
+    id: number
 
     @Column()
     companyId: string

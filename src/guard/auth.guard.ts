@@ -1,33 +1,51 @@
-import { Reflector } from '@nestjs/core'
-import { AuthGuard } from '@nestjs/passport'
-import { ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import { ALLOW_ANON } from 'decorators/allow-anon.decorator'
-import { AuthService } from '../auth/auth.service'
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
+import { Reflector } from '@nestjs/core';
+import { ALLOW_ANON } from 'src/decorators/allow-anon.decorator';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
-    constructor(
-        private readonly reflector: Reflector,
-        @Inject(AuthService)
-        private readonly authService: AuthService
-    ) {
-        super()
+export class AuthGuard implements CanActivate {
+    // 实例化 jwtService
+    constructor(private jwtService: JwtService, private reflector: Reflector) { }
+
+    async canActivate(
+        context: ExecutionContext,
+    ): Promise<boolean> {
+        const isPublic = this.reflector.getAllAndOverride<boolean>(ALLOW_ANON, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        if (isPublic) {
+            // 💡 See this condition
+            return true;
+        }
+        // 获取请求的内容
+        const request = context.switchToHttp().getRequest();
+        const token = this.extractTokenFromHeader(request);
+        if (!token) {
+            throw new UnauthorizedException();
+        }
+        try {
+            // 生成token 通过 jwtService.verifyAsync 
+            const payload = await this.jwtService.verifyAsync(
+                token,
+                {
+                    secret: '766f37b0-2ddc-11ef-8e42-4b44796b1331'
+                }
+            );
+            request['user'] = payload;
+        } catch (err) {
+            throw new UnauthorizedException();
+        }
+        console.log("token 验证通过啦   哈哈哈哈哈")
+        return true;
     }
 
-    async canActivate(ctx: ExecutionContext): Promise<boolean> {
-        // 函数，类 是否允许 无 token 访问
-        const allowAnon = this.reflector.getAllAndOverride<boolean>(ALLOW_ANON, [ctx.getHandler(), ctx.getClass()])
-        if (allowAnon) return true
-        const req = ctx.switchToHttp().getRequest()
-        // const res = ctx.switchToHttp().getResponse()
-        const accessToken = req.get('Authorization')
-        if (!accessToken) throw new ForbiddenException('请先登录')
-        const atUserId = this.authService.verifyToken(accessToken)
-        if (!atUserId) throw new UnauthorizedException('当前登录已过期，请重新登录')
-        return this.activate(ctx)
+    // 通过 请求头拿到 token
+    private extractTokenFromHeader(request: Request): string | undefined {
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        return type === 'Bearer' ? token : undefined;
     }
 
-    async activate(ctx: ExecutionContext): Promise<boolean> {
-        return super.canActivate(ctx) as Promise<boolean>
-    }
 }

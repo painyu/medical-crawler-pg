@@ -66,7 +66,6 @@ export class SpiderService {
               .insert()
               .into(Spider)
               .values({
-                id: uuidv4(),
                 companyId: result[j].id,
                 companyUrl: result[j].url,
                 companyName: result[j].name,

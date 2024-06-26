@@ -1,9 +1,11 @@
-import { Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { ResultData } from "src/common/utils/result";
+import { ResultData } from "../common/utils/result";
+import { CreateSignDto } from "./dto/create-sign.dto";
+import { AllowAnon } from "src/decorators/allow-anon.decorator";
 
-@Controller()
-export class BaseController {
+@Controller('auth')
+export class AuthController {
 
     constructor(private readonly authService: AuthService) { }
     /**
@@ -11,8 +13,9 @@ export class BaseController {
      * @param req 
      * @returns 
      */
-    @Post('/logout')
-    async updateToken(): Promise<ResultData> {
-        return await this.authService.updateToken()
+    @AllowAnon()
+    @Post('/signIn')
+    async signIn(@Body() req: CreateSignDto): Promise<ResultData> {
+        return await this.authService.signIn();
     }
 }

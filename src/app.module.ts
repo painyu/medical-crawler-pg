@@ -1,14 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SpiderModule } from './spider/spider.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './guard/auth.guard';
-import { SysUserModule } from './sys_user/sys_user.module';
 
 @Module({
   imports: [
@@ -37,13 +32,8 @@ import { SysUserModule } from './sys_user/sys_user.module';
     }),
     SpiderModule,
     AuthModule,
-    SysUserModule,
   ],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard
-    }
   ]
 })
 export class AppModule { }
