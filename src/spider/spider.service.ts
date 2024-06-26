@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Redis } from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { QueryTypeDto } from './dto/query.type.dto';
-import { RedisConstant } from 'src/common/constants/redis.constant';
+import { RedisConstant } from '../common/constants/redis.constant';
 
 @Injectable()
 export class SpiderService {
