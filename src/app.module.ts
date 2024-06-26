@@ -4,6 +4,8 @@ import { SpiderModule } from './spider/spider.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
   ],
   providers: [
-  ]
+    AppService
+  ],
+  controllers: [AppController],
 })
 export class AppModule { }
