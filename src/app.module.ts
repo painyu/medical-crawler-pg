@@ -6,6 +6,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -13,6 +14,17 @@ import { AppService } from './app.service';
       ttl: 60000,
       limit: 10,
     }]),
+    RedisModule.forRoot({
+      // "options": {
+      //   host: 'https://emerging-hen-30815.upstash.io',
+      //   port: 6379,
+      //   username: 'default',
+      //   password: 'AXhfAAIncDE2NzdlYjA5OGU4OTQ0YmRhYjQ5Y2NmNmY0MmEyZDBhNnAxMzA4MTU',
+      //   db: 3,
+      // },
+      type: 'single',
+      url: 'redis://default:AX3jAAIncDFiYTBlZmE2NzEyZmU0MTQzODEwMjI5NTdmNTE1ZjIzMHAxMzIyMjc@becoming-sawfly-32227.upstash.io:6379'
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'ep-raspy-lab-a4hs0yal.us-east-1.aws.neon.tech',
