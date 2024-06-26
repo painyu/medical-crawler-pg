@@ -6,6 +6,8 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { ResultData } from '../common/utils/result';
 import { v4 as uuidv4 } from "uuid";
+import { Redis } from 'ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 
 @Injectable()
 export class SpiderService {
@@ -13,6 +15,8 @@ export class SpiderService {
   constructor(
     @InjectRepository(Spider)
     private readonly spiderRepository: Repository<Spider>,
+    @InjectRedis()
+    private readonly redisClient: Redis
 
   ) { }
 

@@ -16,14 +16,19 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     }]),
     RedisModule.forRoot({
       // "options": {
-      //   host: 'https://emerging-hen-30815.upstash.io',
+      //   host: 'https://',
       //   port: 6379,
       //   username: 'default',
       //   password: 'AXhfAAIncDE2NzdlYjA5OGU4OTQ0YmRhYjQ5Y2NmNmY0MmEyZDBhNnAxMzA4MTU',
       //   db: 3,
       // },
       type: 'single',
-      url: 'redis://default:AX3jAAIncDFiYTBlZmE2NzEyZmU0MTQzODEwMjI5NTdmNTE1ZjIzMHAxMzIyMjc@becoming-sawfly-32227.upstash.io:6379'
+      url: 'redis://default:AX3jAAIncDFiYTBlZmE2NzEyZmU0MTQzODEwMjI5NTdmNTE1ZjIzMHAxMzIyMjc@becoming-sawfly-32227.upstash.io:6379',
+      'options': {
+        tls: {
+          port: 6379
+        }
+      }
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
