@@ -23,11 +23,12 @@ import { RedisModule } from '@nestjs-modules/ioredis';
       //   db: 3,
       // },
       type: 'single',
-      url: 'redis://default:AX3jAAIncDFiYTBlZmE2NzEyZmU0MTQzODEwMjI5NTdmNTE1ZjIzMHAxMzIyMjc@becoming-sawfly-32227.upstash.io:6379',
-      'options': {
-        tls: {
-          port: 6379
-        }
+      //url: 'redis://default:GS6YZeKWZEssyDPM@124.222.87.83:6379',
+      options: {
+        host: '124.222.87.83',
+        password: 'GS6YZeKWZEssyDPM',
+        db: 10,
+        port: 6379
       }
     }),
     TypeOrmModule.forRoot({
