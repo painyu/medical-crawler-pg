@@ -44,7 +44,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
       synchronize: false,
       namingStrategy: new SnakeNamingStrategy(),
       logging: true,
-      logger: "file",
+      // logger: "file",
       ssl: true,
       extra: {
         sslmode: 'require'
