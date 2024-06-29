@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe,
 import { SpiderService } from './spider.service';
 import { ResultData } from '../common/utils/result';
 import { QueryTypeDto } from './dto/query.type.dto';
+import { AllowAnon } from 'src/decorators/allow-anon.decorator';
 
 @Controller('spider')
 export class SpiderController {
@@ -44,14 +45,17 @@ export class SpiderController {
   /**
    * 爬取公司的规模，类别，创建时间等信息
    */
+  @AllowAnon()
   @Get('/garse/getCompanyData')
   async getCompanyData(): Promise<ResultData> {
-    return await this.spiderService.getCompanyData();
+    this.spiderService.getCompanyData();
+    return ResultData.ok();
   }
   /**
    * 获取公司手机号码
    * @returns 
    */
+  @AllowAnon()
   @Get('/garse/updatePhone')
   async updatePhone(): Promise<ResultData> {
     return await this.spiderService.updatePhone();

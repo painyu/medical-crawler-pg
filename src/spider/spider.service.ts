@@ -190,7 +190,7 @@ export class SpiderService {
 
   async updatePhone(): Promise<ResultData> {
     var flag = true;
-    let pageNum = 1;
+    let pageNum = 0;
     let pageSize = 50;
     try {
       while (flag) {
