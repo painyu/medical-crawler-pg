@@ -120,11 +120,11 @@ export class SpiderService {
   async getCompanyData(): Promise<ResultData> {
     var flag = true;
     let pageNum = 1;
-    let pageSize = 10;
+    let pageSize = 50;
     try {
       while (flag) {
         let spiderList = await this.spiderRepository.createQueryBuilder().where("keywords = ''").skip((pageNum - 1) * pageSize)
-          .take(pageSize).getMany();
+          .take(pageSize).orderBy({ id: 'DESC' }).getMany();
         if (spiderList != undefined && spiderList.length != 0) {
           for (let i = 0; i < spiderList.length; i++) {
             let spider = spiderList[i];
@@ -155,6 +155,7 @@ export class SpiderService {
               const keywords = $('li.ep-keywords__list-item').map((index, element) => {
                 return $(element).text().trim();
               }).get();
+              console.log(keywords)
               await this.spiderRepository.createQueryBuilder()
                 .update(
                   {
@@ -163,7 +164,7 @@ export class SpiderService {
                     scaleNum: scaleNums,
                     website: href,
                     companyEstablished: companyEstablishedTime,
-                    keywords: keywords.join(', ')
+                    keywords: keywords.length === 0 ? '000000' : keywords.join(', ')
                   }
                 ).where({ id: spider.id })
                 .execute()
@@ -185,7 +186,7 @@ export class SpiderService {
       console.log("============================重新调用 解析网页==============================")
       this.getCompanyData()
     }
-    return ResultData.ok().data("成功");
+    return ResultData.ok();
   }
 
   async updatePhone(): Promise<ResultData> {
@@ -254,5 +255,70 @@ export class SpiderService {
         });
     }
     console.log("**************** updatePhoneById 更新 结束 *******************")
+  }
+
+  async crawlCompanyInfo(): Promise<ResultData> {
+    var flag = true;
+    let pageNum = 0;
+    let url = "https://www.sensata.com.cn/locations/representatives?page=";
+    while (flag) {
+      try {
+        const res = await axios.get(url + pageNum);
+        let $ = cheerio.load(res.data)
+        // 提取公司名称和产品信息
+        const companyInfo = [];
+        $('table tbody tr').each((index, element) => {
+          const companyName = $(element).find('td.views-field-title h4').text().trim();
+          const products = [];
+          $(element).find('td.views-field-title ul li span').each((i, el) => {
+            products.push($(el).text().trim());
+          });
+          const brands = [];
+
+          $(element).find('td.views-field-name-3 ul li').each((i, el) => {
+            brands.push($(el).text().trim());
+          });
+          const country = $(element).find('td.views-field-field-country .country').text().trim();
+          const phone = $(element).find('td.views-field-field-phone-number .phone-wrapper a').text().trim();
+          let website = '';
+          if ($(element).find('td.views-field-field-website a.website-link.link').attr('href') != undefined) {
+            website = $(element).find('td.views-field-field-website a.website-link.link').attr('href').trim();
+          }
+          companyInfo.push({
+            companyName,
+            products,
+            brands,
+            country,
+            phone,
+            website,
+          });
+        });
+        if (companyInfo === undefined || companyInfo.length === 0) {
+          flag = false;
+          continue;
+        }
+        for (let i = 0; i < companyInfo.length; i++) {
+          await this.spiderRepository.createQueryBuilder()
+            .insert()
+            .into(Spider)
+            .values({
+              companyId: uuidv4(),
+              companyName: companyInfo[i].companyName,
+              position: companyInfo[i].country,
+              keywords: companyInfo[i].products.join(', '),
+              product: companyInfo[i].brands.join(', '),
+              website: companyInfo[i].website
+            }).execute()
+            .catch((err) => {
+              console.log(err)
+            });
+        }
+      } catch {
+        flag = false;
+      }
+      pageNum += 1;
+      console.log(pageNum)
+    }
+    return ResultData.ok();
   }
 }
