@@ -1,17 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { SpiderService } from './spider.service';
 import { ResultData } from '../common/utils/result';
 import { QueryTypeDto } from './dto/query.type.dto';
-
+import { QuerySpiderPageDto } from './dto/query.spider.page.dto';
+import { FileInterceptor, } from '@nestjs/platform-express';
+import { ExcelService } from 'src/excel/excel.service';
 @Controller('spider')
 export class SpiderController {
-  constructor(private readonly spiderService: SpiderService) { }
-
+  constructor(
+    private readonly spiderService: SpiderService,
+    private readonly excelService: ExcelService
+  ) { }
+  /**
+   * 根据条件分页查询
+   * @param pageReq 
+   * @returns 
+   */
   @Get('/garse/findSpiderListPage')
-  async findSpiderListPage(@Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,
-    @Query('keyword') keyword: string,): Promise<ResultData> {
-    return await this.spiderService.findSpiderListPage(page, limit, keyword);
+  async findSpiderListPage(@Body() pageReq: QuerySpiderPageDto): Promise<ResultData> {
+    if (pageReq.keyword === undefined || pageReq.keyword === null || pageReq.keyword === '') {
+      return ResultData.fail(500, "关键字不能为空");
+    }
+    return await this.spiderService.findSpiderListPage(pageReq);
   }
 
   /**
@@ -58,9 +68,6 @@ export class SpiderController {
     return await this.spiderService.updatePhone();
   }
 
-
-
-
   // ======================================www.sensata.com.cn===============================================
 
   /**
@@ -70,5 +77,19 @@ export class SpiderController {
   @Get('/sensata/crawlCompanyInfo')
   async crawlCompanyInfo(): Promise<ResultData> {
     return await this.spiderService.crawlCompanyInfo();
+  }
+
+
+  // ======================================www.sensata.com.cn===============================================
+
+  @Post('/garse/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadExcel(@UploadedFile() file) {
+    try {
+      const data = await this.excelService.readExcel(file.buffer);
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 }

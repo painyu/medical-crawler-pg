@@ -28,10 +28,6 @@ export class Spider {
     contactPerson: string
 
     @Column()
-    position: string
-
-
-    @Column()
     website: string
 
     @Column()
@@ -44,10 +40,13 @@ export class Spider {
     keywords: string
 
     @Column()
-    @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+    emails: string
+
+    @Column()
+    @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
     createTime: Date
 
     @Column()
-    @UpdateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+    @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
     updateTime: Date
 }

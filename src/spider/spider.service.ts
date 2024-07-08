@@ -1,7 +1,7 @@
 import { Injectable, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Spider } from './entities/spider.entity';
-import { Any, Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { ResultData } from '../common/utils/result';
@@ -10,6 +10,8 @@ import { Redis } from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { QueryTypeDto } from './dto/query.type.dto';
 import { RedisConstant } from '../common/constants/redis.constant';
+import { QuerySpiderPageDto } from './dto/query.spider.page.dto';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class SpiderService {
@@ -39,14 +41,16 @@ export class SpiderService {
     return ResultData.ok();
   }
 
-  async findSpiderListPage(page: number, limit: number, keyword: string): Promise<ResultData> {
-    if (keyword === undefined || keyword === null || keyword === '') {
-      return ResultData.fail(500, "关键字不能为空");
-    }
+  async findSpiderListPage(pageReq: QuerySpiderPageDto): Promise<ResultData> {
+    const { page, keyword, country, address } = pageReq
     let spiderList = await this.spiderRepository.createQueryBuilder('spider_website')
-      .where("keywords LIKE  :keyword", { keyword: `%${keyword}%` })
+      .where({
+        ...(keyword ? { keywords: Like(`%${keyword}%`) } : null),
+        ...(country ? { country: Like(`%${country}%`) } : null),
+        ...(address ? { address: Like(`%${address}%`) } : null),
+      })
       .skip(page)
-      .take(limit).getManyAndCount();
+      .take(5).getManyAndCount();
     return ResultData.ok({ list: spiderList[0], total: spiderList[1] });
   }
 
@@ -304,7 +308,6 @@ export class SpiderService {
             .values({
               companyId: uuidv4(),
               companyName: companyInfo[i].companyName,
-              position: companyInfo[i].country,
               keywords: companyInfo[i].products.join(', '),
               product: companyInfo[i].brands.join(', '),
               website: companyInfo[i].website
@@ -319,6 +322,25 @@ export class SpiderService {
       pageNum += 1;
       console.log(pageNum)
     }
+    return ResultData.ok();
+  }
+
+  async readExcel(file: any) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(file);
+    return workbook;
+  }
+
+  async createBatch(spiderList: any): Promise<ResultData> {
+    await spiderList.forEach(async spider => {
+      await this.spiderRepository.createQueryBuilder()
+        .insert()
+        .into(Spider)
+        .values(spider).execute()
+        .catch((err) => {
+          console.log(err)
+        });
+    })
     return ResultData.ok();
   }
 }
