@@ -11,4 +11,10 @@ export class AppController {
   async getHello(): Promise<string> {
     return await this.appService.getHello();
   }
+
+  @AllowAnon()
+  @Get("/getHealth")
+  async getHealth(): Promise<string> {
+    return await this.appService.getHealth();
+  }
 }

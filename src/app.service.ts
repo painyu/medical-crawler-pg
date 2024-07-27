@@ -7,4 +7,8 @@ export class AppService {
   async getHello(): Promise<string> {
     return 'Hello World!';
   }
+
+  async getHealth(): Promise<string> {
+    return 'Health check success';
+  }
 }
