@@ -30,9 +30,7 @@ export class SpiderService {
    * @returns 
    */
   async getId(id: string): Promise<ResultData> {
-    let data = await this.spiderRepository.createQueryBuilder('spider_website').where({
-      ...({ id: id })
-    })
+    let data = await this.spiderRepository.createQueryBuilder().where({id:id}).getOne();
     return ResultData.ok({ data: data });
   }
 }

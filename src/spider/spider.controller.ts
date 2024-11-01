@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseInterceptors, UploadedFile, Param } from '@nestjs/common';
 import { SpiderService } from './spider.service';
 import { ResultData } from '../common/utils/result';
 import { QuerySpiderPageDto } from './dto/query.spider.page.dto';
+import { AllowAnon } from 'src/decorators/allow-anon.decorator';
 @Controller('spider')
 export class SpiderController {
   constructor(
@@ -12,6 +13,7 @@ export class SpiderController {
    * @param pageReq 
    * @returns 
    */
+  @AllowAnon()
   @Post('/garse/findSpiderListPage')
   async findSpiderListPage(@Body() pageReq: QuerySpiderPageDto): Promise<ResultData> {
     if (pageReq.keyword === undefined || pageReq.keyword === null || pageReq.keyword === '') {
@@ -26,8 +28,9 @@ export class SpiderController {
     * @param id 编号
    * @returns 
    */
+  @AllowAnon()
   @Get('/garse/getId/:id')
-  async getId(@Query("id") id: string): Promise<ResultData> {
+  async getId(@Param('id') id: string): Promise<ResultData> {
     return await this.spiderService.getId(id);
   }
 }
