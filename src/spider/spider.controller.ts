@@ -12,11 +12,22 @@ export class SpiderController {
    * @param pageReq 
    * @returns 
    */
-  @Get('/garse/findSpiderListPage')
+  @Post('/garse/findSpiderListPage')
   async findSpiderListPage(@Body() pageReq: QuerySpiderPageDto): Promise<ResultData> {
     if (pageReq.keyword === undefined || pageReq.keyword === null || pageReq.keyword === '') {
       return ResultData.fail(500, "关键字不能为空");
     }
     return await this.spiderService.findSpiderListPage(pageReq);
+  }
+
+  /**
+   * 
+    * 根据ID查询详情
+    * @param id 编号
+   * @returns 
+   */
+  @Get('/garse/getId/:id')
+  async getId(@Query("id") id: string): Promise<ResultData> {
+    return await this.spiderService.getId(id);
   }
 }

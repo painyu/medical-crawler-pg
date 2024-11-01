@@ -5,6 +5,4 @@ export class QuerySpiderPageDto {
     keyword: string
 
     country: string
-
-    address: string
 }
