@@ -13,7 +13,6 @@ export class SpiderController {
    * @param pageReq 
    * @returns 
    */
-  @AllowAnon()
   @Post('/garse/findSpiderListPage')
   async findSpiderListPage(@Body() pageReq: QuerySpiderPageDto): Promise<ResultData> {
     if (pageReq.keyword === undefined || pageReq.keyword === null || pageReq.keyword === '') {
@@ -28,7 +27,6 @@ export class SpiderController {
     * @param id 编号
    * @returns 
    */
-  @AllowAnon()
   @Get('/garse/getId/:id')
   async getId(@Param('id') id: string): Promise<ResultData> {
     return await this.spiderService.getId(id);

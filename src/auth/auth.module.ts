@@ -11,7 +11,7 @@ import { AuthGuard } from '../guard/auth.guard';
       global: true,
       secret: "766f37b0-2ddc-11ef-8e42-4b44796b1331",
       signOptions: {
-        expiresIn: '12h'
+        expiresIn: '24h'
       }
     }),
   ],
