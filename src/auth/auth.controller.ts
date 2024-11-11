@@ -14,6 +14,7 @@ export class AuthController {
     @AllowAnon()
     @Get('/signIn')
     async signIn(): Promise<string> {
+        
         return await this.authService.signIn();
     }
 }
