@@ -20,7 +20,7 @@ export class SpiderService {
         ...(keyword ? { keywords: Like(`%${keyword}%`) } : null),
         ...(country ? { country: Like(`%${country}%`) } : null),
       })
-      .skip(page)
+      .skip((page - 1) * 5)
       .take(5).getManyAndCount();
     return ResultData.ok({ list: spiderList[0], total: spiderList[1] });
   }
@@ -30,7 +30,7 @@ export class SpiderService {
    * @returns 
    */
   async getId(id: string): Promise<ResultData> {
-    let data = await this.spiderRepository.createQueryBuilder().where({id:id}).getOne();
+    let data = await this.spiderRepository.createQueryBuilder().where({ id: id }).getOne();
     return ResultData.ok({ data: data });
   }
 }
